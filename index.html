@@ -38,7 +38,7 @@
       
       data.forEach(function(d) {
         d.frp = +d.frp;
-        d.date = parseDate(d.date);
+        d.date = parseDate(d.acq_date);
       });
       
       var x = d3.scaleTime()
