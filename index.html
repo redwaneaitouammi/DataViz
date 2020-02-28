@@ -1,77 +1,720 @@
 <!DOCTYPE html>
-<head>
+<html>
+<!-- RandomEtc - Autralia maps -->
   <meta charset="utf-8">
-  <script src="https://d3js.org/d3.v4.min.js"></script>
   <style>
-    div { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; 
-    overflow-x: scroll;
-    overflow-y: hidden;
-    white-space: nowrap;
+  
+  .states {
+    fill: #222;
+  }
+  
+/*  .states :hover {
+    fill: orange;
+  }*/
+body{
+	font-family: monospace ;
 }
-     .line {
-        fill: none;
-        stroke-width: 10px;
-    }
-  </style>
-</head>
 
-<body>
-  <div>
-  <script>
-    // Feel free to change or delete any of the code you see in this editor!
-    var margin = {top: 20, right: 10, bottom: 10, left: 10};
+  div.tooltip { 
+    position: absolute;     
+    text-align: center;     
+    width: 75px;          
+    height: 45px;         
+    padding: 2px;       
+    font: 15px arial;    
+    background: lightsteelblue; 
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;     
+  }
 
-    var width = 6000 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+  .box{
+  position: relative;
+  width: 40px ;
+  height: 40px;
+  background: #191970 ;
+  position: absolute;
+  top: calc(50% -160px);
+  left: calc(50% -120px);
+  padding: 20px ;
+  transition: 1s ;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  }
+  .box.active
+  {
+  	width: 99% ;
+  	height: 90% ;
+  }
+  .box p 
+  {
+  	font-size: 16px;
+  	font-family: system-ui ;
+  	text-align: center;
+  	text-align: justify;
+  	transition: .5s ease ;
+  	margin-top: 25px ;
+  	visibility: hidden;
+  	color: #fff;
+  }
+  .box.active p 
+  {
+  	transition-delay: 1s ;
+  	visibility: visible;  
+  	text-align: center;
+  }
+  .toggle
+  {
+  	position: absolute;
+  	top: 0;
+  	left: 0;
+  	width: 40px ;
+  	height: 40px ;
+  	background: #2e80ff ;
+  	transition: 1s ;
+  }
+  .toggle span
+  {
+  	display: block;
+  	width: 20px ;
+  	height: 2px ;
+  	background: #fff ;
+  	position: absolute;
+  	top: 19px ;
+  	left: 10px ;
+  	transition: 1s ;
+  }
+.toggle span:before
+{
+	content: '' ;
+	position: absolute;
+	width: 100% ;
+	height: 100% ;
+	transform: rotate(90deg);
+	background: #fff ;
+	transition: 1s ;
+}
+.toggle.active
+{
+	background: #ff3131 ;
+	top : 0;
+	left: calc(100%-40px) ;
+	border-radius: 50% ;
+	transform: scale(.6);
+}
+.toggle.active span
+{
+	transform: rotate(225deg);
+}
+  
+  svg {
+    border: solid 1px blue;
+    height: 500px ;
+  }
+
+  
+
+  </style>  
+  <head>
+  	<script
+  src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
+    <!-- help Button JS -->
+    <script type="text/javascript">
+    	$(document).ready(function(){
+    		$('.toggle').click(function(){
+    			$('.toggle').toggleClass('active')
+    		})
+    		$('.toggle').click(function(){
+    			$('.box').toggleClass('active')
+    		})
+    	})    </script>
+
+    <!-- containers align -->
+  	   
+  	    <style type="text/css">
+  	    .container1{
+    		float: left;
+    		
+    	}
+    	.container2{
+    		float: center;
+    	}
+    	
+    </style>
+
+  </head>
+  <body>
+    <h1> Evolution of Forest fires in Australia : August 2019 - December 2019 </h1>
+
+
+<!-- Help -->
+ <div class="box">
+ 	<div class="toggle"><span></span></div>
+ 	<p>
+ 		<br><b><font size="20">Welcome</font></b> <br><br><br>
+ 	
+
+ <b>- Context - </b> <br> <br>
+Forest fires of unprecedented scale and violence have devastated entire regions of Australia since September 2019. They have caused considerable damage, not only to homes but also to flora and fauna. Over 1 billion animals have been killed and million hectares of forest land has been burned. Damage to human life and property is estimated around 485 million $. <br><br>
+With our visualization, we want to answer some questions about the evolution of the fire dispersion, the regions that have experienced intense fires, in which periods of summer and what were the maximum values, etc. <br><br>
+Observing the trends for this year of 2019 could help relevant authorities to be better prepared for the future, if bushfires of this scale and intensity were ever to repeat. <br><br>
+
+<b> - Description of the Visualization - </b> <br><br>
+Our goal is to show the temperatures and fire radiative power(frp) of the bushfires during August 2019-December 2019.  Initially, when the page loads, we chose to project only the fires for the first date (08/01/2019) to speed up the loading of the map. An option to show all the fires during this period of 5 months is available as a checkbox below the map. The legend indicates the values of the temperatures according to their colors. <br><br>
+The ‘Github style’ heatmap on the right gives a global view of the evolution of fires during this period. The color intensity reflects the maximum temperature value observed on the particular day. Each day of every month is covered here. Upon hovering the mouse over a rectangle corresponding to a particular day you can see the date, maximum temperature and the maximum frp value recorded this day. <br><br> 
+ By clicking on the rectangle, only the fires initiated on that particular day are projected on the map with a brief animation that takes place to emphasize the change. On the map, by hovering over the fire points a tooltip is displayed which shows the information related to this specific location including the temperature and the frp value .<br><br>
+
+
+
+	
+ 	</p>
+ </div>
+<!-- end Help -->
+
+
+
+
+
+  	<div class= "container1" id="plot1" > </div>
+  	<div class="container2" id="plot2" > </div>
+
+  	<input type="checkbox" id="myCheckbox"> Show all the fires for the time period <br>
+  	<b>Warning </b> : Due to the sheer size of the data, this could take some time to load, please wait patiently.
+
+  	<br>
+  	<hr>
+  	<p> <b>Authors : </b> <br>
+  		<a href="https://twitter.com/redwane_a">
+<img border="0" alt="W3Schools" src="Twitter.png" width="40" height="20">
+</a>
+  		<a href="https://github.com/redwaneaitouammi/">
+<img border="0" alt="W3Schools" src="git.png" width="20" height="20">
+</a>
+ AIT-OUAMMI Redwane 	<br>
+
+<a href="https://twitter.com/RVaikuntham">
+<img border="0" alt="W3Schools" src="Twitter.png" width="40" height="20">
+</a> 
+  		<a href="https://github.com/ranganathvaikuntham/">
+<img border="0" alt="W3Schools" src="git.png" width="20" height="20">
+</a>
+ VAIKUNTHAM Ranganath <br>
+  	
+  	
+	
+	<br><b>Credits : </b><br>
+	
+	 	<a href="https://www.ec-lyon.fr/">
+<img border="0" alt="W3Schools" src="ecl.png" width="20" height="20">
+</a>
+	This work is done as part of an academic deliverable for the course <a href="https://github.com/LyonDataViz/MOS5.5-Dataviz">Interactive Data Visualziation</a> supervized by <a href="https://www.ec-lyon.fr/contacts/romain-vuillemot">Mr. Romain Vuillemot</a> . <br>
+
+	The source code of the project is available on github following this <a href="https://github.com/ranganathvaikuntham/DataViz">link</a> .
+
+    <script>
+// css style
+
+	d3.select("#myCheckbox").on("change",update);
+			//update();
+      var width = 800,
+          height =628;
     
-    var svg = d3.select("div").append("svg")
-      .attr("width", width)
-      .attr("height", height)
+      var projection = d3.geo.conicConformal()
+        .rotate([-132, 0])
+        .center([10, -24])
+        .parallels([-18, -36])
+        .scale(Math.min(height * 1.2, 960 * 0.8))
+        .translate([960 / 2.6, height / 3])
+        .precision(0.1);
 
- //   var data = d3.range(10).map(Math.random)
-
-   	d3.csv("fire_archive_M6_96619.csv", function(data) { 
-
-      var parseDate = d3.timeParse("%Y-%m-%d")
-      var displayDate = d3.timeFormat("%d %b %y ")
+      var path = d3.geo.path()
+        .projection(projection);
       
+      var svg = d3.select("#plot1").append("svg")
+          .attr("width", width*0.66)
+          .attr("height", height*0.8);
+          
+          //.attr("title","hello")
+      // data defined globally to make  it accesible
+      //var data;
+
+	  var parseDate = d3.timeParse("%m/%d/%Y");
+	  var x; 
+	  var dataglobal;
+	  var dataglobal2;
+
+        // Define the div for the tooltip
+   var divtool = d3.select("body").append("div")  
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+
+	  var svg2 = d3.select("#plot2").append("svg")
+          .attr("width", 500)
+          .attr("height", 300);
+
+      // define the month names - redundant as month names are now inbuilt and can be extracted
+      const monthNames = ["January", "February", "March", "April", "May", "June",
+  						 "July", "August", "September", "October", "November", "December"
+						 ];
+   d3.json("australia.json", function(error, australia) {
+        if (error) throw error;
       
-      data.forEach(function(d) {
-        d.frp = +d.frp;
-        d.date = parseDate(d.acq_date);
-      });
+      // drawing the  map of Australia with data
+        svg.append("g")
+            .attr("class", "states")
+          .selectAll("path")
+            .data(topojson.feature(australia, australia.objects.states).features)
+          .enter().append("path")
+            .attr("d", path)
+
+
+        // d3.csv("fire_archive_M6_96619.csv", function(data) {
+        d3.csv("data/fire_archive_M6_96619 - DataAdded1.csv" , function(data){
+
+
+      data.forEach(function(d)
+             {
+                d.date = parseDate(d.acq_date);
+              }
+              );
+
+        x = d3.scaleTime()
+          .domain([ d3.min(data, function(d){return new Date(d.date).getDate();}),
+                d3.max(data, function(d){return new Date(d.date).getDate();})
+                ])
+          .range([0, 860]);
+
+      // data printing?
+    console.log("original data") ;  
+    console.log(data) ;   
+       // good till here -- yes
+
+       // Nest fire values by date.
+      var firedatabydate = d3.nest()
+        .key(function(d) { return d.date; })
+      .entries(data);
+
+    // check here
+            //console.log("firedatabydate");
+      console.log(firedatabydate) ;
+
+    // Parse and caculate some values for each firedata
+      firedatabydate.forEach(function(s) {
+        s.values.forEach(function(d) {
+        d.frp = d.frp;
+        d.brightness = d.brightness; // possibly redundant
+        });
+
+        // store max frp and max brightness for each day
+        s.maxfrp = d3.max(s.values, function(d) { return d.frp; });
+        s.maxbrightness = d3.max(s.values, function(d) { return d.brightness; });
+
+        });
+            
+            console.log("firedatabydate");
+      console.log(firedatabydate) ;
+      // good till here
+
+      //treating the firedatabydate nested data and putting it in simple 
+      //json type format so we can plot it easier
+      var data_stack = []
+          
+      firedatabydate.forEach(function(d, i) {
+          //d.values = d.values.map(function(e) { return e.value; })
+          var t ={}
+            //symbols.forEach(function(e, i) {
+             // t[e] = d.values[i]
+            //})
+          //console.log("hello")
+          //console.log(d.key)
+          t.date = new Date(d.key);
+          t.maxbrightness = d.maxbrightness;
+          t.maxfrp = d.maxfrp;
+          data_stack.push(t)
+          })
+
+      //console.log(22)
+      //console.log(data_stack) 
+      //good till here
+      dataglobal = firedatabydate;
+      dataglobal2 = data;
+          // accessing value (arrays) for a particular key - first
+          //console.log("input check")
+          //console.log(dataglobal[0].values)
+          //plotfirepoints (svg, data);
+          plotfirepoints (svg, firedatabydate[0].values);
+
+          plotheatmap(svg2, data_stack) ;
+          console.log('After plot')
+
+            
+      // var tip = d3.tip()
+      //      .attr('class', 'd3-tip')
+      //      .offset([-5, 0])
+      //      //.call(log,"Function called")
+      //      .html(function(d) {
+      //          // return ("frp : "+d.frp +".<br> T° (Kelvin) :" +d.brightness + ".");  
+      //           var t = Math.round(d.brightness - 273)
+      //          return ("frp : "+d.frp +"<br> T :" + t + " °C ");
+      //          })    
+      //svg.call(tip);
       
-      var x = d3.scaleTime()
-          .domain(d3.extent(data, function(d) { return d.date; }))
-          .range([margin.left, width + margin.left])
+          }) // closing of fire data
 
-      var y = d3.scaleLinear()
-          .domain([d3.min(data, function(d) { return d.frp; }), 
-                   d3.max(data, function(d) { return d.frp; })])
-          .range([margin.top, height + margin.top])
-   
+      });  // closing of australia json
+
+      d3.select(self.frameElement).style("height", height + "px");
+
+function plotfirepoints (svg, data) {
 
 
-        var line = d3.line()
-          .curve(d3.curveMonotoneX)
-          .x(function(d, i) {  return x(d.date); })
-          .y(function(d, i)  {  return height-y(d.frp); })
+      console.log("The data for this day",data); // do we have the data here?
+      //console.log("It is for the month of",moment(data[0].date).month() + 1);
 
-      svg.selectAll("path").data([data]).enter()
-        .append("path")
-        .style("fill", "none")
-        .style("stroke", "blue")
-        .attr("d", line)
-        
-      svg.selectAll("text").data(data).enter()
-      	.append('text')
-      	.attr("x", function(d, i) {  return x(d.date); })
-      	.attr("y", function(d, i)  {  return height; })
-      	.text(function(d) { return displayDate(d.date)})
+      //remove all existing points
+      svg.selectAll("#the_SVG_ID").remove();
+      //svg.selectAll(".pin").remove();
+
+      var circles = svg.selectAll(".pin")
+                .data(data)
+                .enter().append("circle", ".pin")
+                .attr("r", 10)
+                .attr("id","the_SVG_ID")
+                //.on("mouseover",console.log("Over a point"))
+
+                .style("opacity", "1")
+                .attr("transform", function(d) {
+                return "translate(" + projection([
+                  d.longitude,
+                  d.latitude
+                ]) + ")"
+                })
+                .attr("fill", function(d,i) {             
+              if (Math.round(d.brightness) <= 320) {return "salmon"}  //less than 47
+              else if (Math.round(d.brightness) >320 && Math.round(d.brightness) <= 330) { return "crimson" } //57
+                else {return "darkred"} // >59
+                })
+                //.on('mouseover',console.log("Hello"))
+                //.on('mouseover', tip.show)
+                //.on('click', tip.hide);
+                .on("mouseover", function(d) {  
+                   var t = Math.round(d.brightness - 273);  
+                       divtool.transition()   
+                        .duration(200)    
+                        .style("opacity", .9);    
+                    //div.html(formatTime(d.date) + "<br/>"  + d.close)
+                    divtool.html("<strong>frp : "+d.frp +"<br> T :" + t + " °C</strong>")  
+                        .style("left", (d3.event.pageX) + "px")   
+                        .style("top", (d3.event.pageY - 28) + "px");  
+                    })          
+                .on("mouseout", function(d) {   
+                    divtool.transition()    
+                        .duration(500)    
+                        .style("opacity", 0); 
+                });
+      //circles.exit(data).remove();
+      circles.transition()
+          .delay(2000)
+          .duration(2000)
+          .attr("r", "3");
+
+
+      //legend
+        var color = ["" ,"salmon","crimson","darkred"]
+        var classes = ["" , "[0,47]" , "[46,57]" , "[58,234]"]
+
+         var legend = svg.selectAll('g')
+            .data(classes)
+            .enter()
+            .append('g')
+            .attr('class', 'legend');
+
+          legend.append('rect')
+            .attr('x',30)
+            .attr('y', function(d, i) {
+              return 400 + i * 20;
+            })
+            .attr('width', 10)
+            .attr('height', 10)
+            .style('fill', function(d,i) {
+              return color[i];
+            });
+
+          legend.append('text')
+              .attr("font-size", 14)
+              .attr("font-family","monospace")
+              .attr('x', 30)
+              .attr('y', 400)
+              .text("Temperature in °C ")
+
+          legend.append('text')
+            .attr("font-size", 12)
+            .attr("font-family", "monospace")
+            .attr('x', 60)
+            .attr('y', function(d, i) {
+              return (i * 20) + 408;
+            })
+            .text(function(d,i) {
+              return classes[i];
+            });   
+      //circles.on("mouseover", console.log("Over a point"))
       
-    })
+}
+
+function plotheatmap (svg, data) {
+  console.log(data)
+
+  const width = 860
+  const height = 450
+  const margins = { top: 60, right: 40, bottom: 30, left: 60 }
+
+  const xScale = defineXScale(data, width)
+  const yScale = defineYScale(data, height)
+ // console.log('sdfs');
+ // console.log(xScale(data[0].date));
+  //console.log('sdfs');
+  const colorScale = defineColorScale()
+
+  const g = createCanvas(svg, width, height, margins)
+  drawXAxis(g, xScale)
+  drawYAxis(g, yScale)
+  // append axes labels
+  svg2.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", 500)
+    .attr("y",  25)
+    .text("Day number");
+
+  drawRectangles(g, xScale, yScale, colorScale, data)
+}
+
+ // logic of plotting the rectangles 
+function drawRectangles(g, xScale, yScale, colorScale, data) {
+
+   // console.log('d.date');
+    //console.log(d3.max(data, function(d){return d.date;}));
+    //console.log('d.date');
+
+  g.selectAll('rect')
+    .data(data)
+    .call(log,86)
+    //.call(log,moment(data[54].key).date()) 
+    //.call(log,moment(data[31].key).month() + 1)
+    //.call()
+    //.call(log,84)
+    //.call(log(data))
+     // error here - what is d referring to? array name needed
+     // d.maxbrightness even valid?
     
 
-  </script>
-  </div>
-</body>
+    .enter().append('rect')
+      //.attr('x', d => xScale(moment(d.date).year()))
+       //.call(log,33)
+      // .call(log,data)
+      //.attr('x', d => xScale(moment(d.key).date()))
+      .attr('x', function(d){return x(d.date.getDate());})
+      //.call(log,d.key)
+      //.attr('y', d => yScale(moment(d.key).month() + 1))
+      .attr('y', d => yScale(moment(d.date).month() + 1))
+      .attr('width', 60)//xScale.bandwidth()*0.8)
+      .attr('height', yScale.bandwidth()*0.8)
+      .attr('fill', d => colorScale(d.maxbrightness))
+      .attr("style",function(d) {return "stroke:" + "white"+ ";stroke-width:2px";})
+      //.on("mouseover",function(){handleMouseOver();})
+      .on("mouseover", handleMouseOver)
+      //.on("mouseout", handleMouseOut);
+      .on("mouseout",function(d){svg2.select("text.hover").remove();
+       d3.select(this).style("fill", colorScale(d.maxbrightness));
+                                })
+      .on("click", handleMouseClick)
+      //.style("stroke-width", 2)
+}
+
+      // Create Event Handlers for mouse
+
+
+function handleMouseClick(d, i) {
+
+
+//console.log(d.date);
+var dateoffire = d.date.toString();
+//console.log(dateoffire+'tttt')
+//worked till here
+
+//console.log(svg); // worked as well
+//console.log(dataglobal); // worked as well
+//console.log("Required data")
+//console.log(dataglobal[dataglobal])
+// access error
+
+//find the corresponding object in array of objects
+var inputData = dataglobal.find(obj => {
+  return obj.key === dateoffire
+})
+
+//console.log("Input data")
+//console.log(inputData)
+//console.log("Input data2")
+//console.log(inputData.values)
+plotfirepoints(svg, inputData.values);
+}
+
+function update(){
+				if(d3.select("#myCheckbox").property("checked")){
+					newData = dataglobal2;
+				} else {
+					newData = [];			
+				}
+
+				plotfirepoints(svg,newData);}	
+
+
+function handleMouseOver(d, i) {  // Add interactivity
+
+            // Use D3 to select element, change color and size
+            // d3.select(this).attr({
+            //   fill: "red",
+            //   //r: radius * 2
+            // });
+           d3.select(this).style("fill", "red");
+          //this.setState({ fillColour: 'green' });  
+          //console.log(d);  
+          datenow = d.date.getDate();
+          maxfrpval = d.maxfrp;
+          maxbrightnessval = d.maxbrightness;
+          maxtemperatureval = Math.round(maxbrightnessval - 273);
+          stringtoprint =  "|"+ monthNames[moment(d.date).month()] +":" + datenow + "| Max frp:" + maxfrpval+ "| Max Temperature:"  + maxtemperatureval+"°C|"
+
+          svg2.append("text")
+          .attr("x",x(d.date.getDate())-130)
+          .attr("y",moment(d.date).month()*86-450 )
+          .attr("class", "hover")
+          .attr("font-family", "monospace")
+          .attr("font-size", "13px")
+          .style("fill", "black")
+          .text(function(d,i) {
+            
+            console.log("mouseover");
+            return stringtoprint;
+            })
+      }
+
+
+function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+           // d3.select(this).style("fill", colorScale(d.maxbrightness));
+            /*
+            d3.select(this).attr({
+              fill: d =>colorScale(d.maxbrightness),
+              //r: radius
+            }); */
+
+            // Select text by id and then remove
+              svg2.select("text.hover").remove();
+      }// Remove text location
+          
+
+function log(sel,msg) {
+  console.log(msg,sel);
+}
+  
+  
+function drawXAxis (g, xScale) {
+ //const range = (1, 31) => [...Array(31 + 1).keys()].slice(1);
+  //ticks = [1,2,3,4,5,6,7,8,9,10]
+  //ticks = range(1,31);
+  //const ticks  = Array.from({ 31: (31 - 1) / 1 + 1}, (_, i) => 1 + (i * 1));
+  // range generator function
+  const range = (start, stop, step) => Array.from({ length: (stop - start) / step + 1}, (_, i) => start + (i * step));
+
+  const ticks = range(1,31,1);
+
+  //console.log("HELLO HERE")
+  //console.log(ticks)
+  const xAxis = d3.axisTop(xScale)
+  .tickValues(ticks)
+  //.tickFormat(d3.format(".1s"));
+  //.tickFormat(d3.formatPrefix("1", 1e6));
+  .tickFormat(d3.format("d"))
+  
+  g.append('g')
+    .call(xAxis)
+}
+
+function drawYAxis (g, yScale) {
+  const yAxis = d3.axisLeft(yScale)
+    .tickFormat(d => moment(d, 'M').format('MMMM'))
+
+  g.append('g')
+    .call(yAxis)
+}
+
+function defineColorScale () {
+  return d3.scaleQuantile()
+    .domain(d3.range(0, 505))
+    .range([
+      "#5E4FA2",
+      "#3288BD",
+      "#66C2A5",
+      "#ABDDA4",
+      "#E6F598",
+      "#FFFFBF",
+      "#FEE08B",
+      "#FDAE61",
+      "#F46D43",
+      "#D53E4F",
+      "#9E0142"
+    ])
+}
+
+function defineXScale (data, width) {
+  console.log('here');
+  console.log(data[0].date);
+  console.log('here');
+  return d3.scaleTime()
+    //.domain(d3.map(data, d => d.key.date()))//d.date.substring(0, 4)).keys())
+    //.domain(d3.extent(data, d =>d.date))
+    //.domain([data[0].date, data[60].date])
+    //.call("HERE")
+  //  .call(log,d3.min(data, function(d){return d.date;}))
+    .domain([
+                d3.min(data, function(d){return d.date.getDate();}),
+                d3.max(data, function(d){return d.date.getDate();})
+                ])
+    .range([0, width])
+    //.domain([new Date("January 1, 1940 00:00:00"), new Date("January 4, 1980 00:00:00")]);
+     //.domain([1,31])
+    //.padding(0.4)
+}
+
+       
+
+function defineYScale (data, height) {
+  return d3.scaleBand()
+    .range([0, height])
+    .domain(d3.range(8, 13))
+    .padding(0.2)
+}
+
+function createCanvas (svg, width, height, margins) {
+  return svg
+      .attr('width', width + margins.left + margins.right)
+      .attr('height', height + margins.top + margins.bottom)
+    .append('g')
+      .attr('transform', `translate(${margins.left}, ${margins.top})`)
+}
+
+
+
+
+    </script>
+  </body>
+</html>
